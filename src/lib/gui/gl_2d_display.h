@@ -5,8 +5,12 @@
 #include "gl_shader.h"
 #include "util/loop_iterator.h"
 
+#if defined(_WIN32)
+#include <GL/glew.h>
+#else
 #include <GLES3/gl3.h>
 #include <GLES2/gl2ext.h>
+#endif
 #include <memory>
 
 namespace cimbar {
@@ -135,6 +139,28 @@ protected:
 		 * vec2 tl = vec2(1.0f - vert.x, 1.0f + vert.y);
 		 * vec2 tr = vec2(1.0f + vert.y, 1.0f + vert.x);
 		*/
+#if defined(_WIN32)
+		static const std::string VERTEX_SHADER_SRC = R"(#version 330 core
+		uniform mat2 rot;
+		uniform vec2 tform;
+		in vec4 vert;
+		out vec2 texCoord;
+		void main() {
+		   gl_Position = vec4(vert.x, vert.y, 0.0f, 1.0f);
+		   vec2 ori = vec2(vert.x, vert.y);
+		   ori *= rot;
+		   texCoord = vec2(1.0f - ori.x, 1.0f - ori.y) / 2.0;
+		   texCoord -= tform;
+		})";
+
+		static const std::string FRAGMENT_SHADER_SRC = R"(#version 330 core
+		uniform sampler2D tex;
+		in vec2 texCoord;
+		out vec4 finalColor;
+		void main() {
+		   finalColor = texture(tex, texCoord);
+		})";
+#else
 		static const std::string VERTEX_SHADER_SRC = R"(#version 300 es
 		uniform mat2 rot;
 		uniform vec2 tform;
@@ -156,6 +182,7 @@ protected:
 		void main() {
 		   finalColor = texture(tex, texCoord);
 		})";
+#endif
 
 		GLuint vertexShader = cimbar::gl_shader(GL_VERTEX_SHADER, VERTEX_SHADER_SRC);
 		GLuint fragmentShader = cimbar::gl_shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER_SRC);

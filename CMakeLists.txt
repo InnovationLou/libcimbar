@@ -5,6 +5,7 @@ enable_testing()
 
 if (MSVC)
     add_compile_options(/FI "iso646.h")
+    add_compile_options(/utf-8)
 endif()
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -16,8 +17,10 @@ add_definitions("-DLIBCIMBAR_PROJECT_ROOT=\"${libcimbar_SOURCE_DIR}\"")
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
 	set(CMAKE_BUILD_TYPE "RelWithDebInfo")
-	set(CMAKE_C_FLAGS "${CFLAGS} -Wall -std=c99 -Os -fPIC")
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Wall -Wextra -Wpedantic -Wdeprecated -g -O2 -fPIC")
+	if(NOT MSVC)
+		set(CMAKE_C_FLAGS "${CFLAGS} -Wall -std=c99 -Os -fPIC")
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Wall -Wextra -Wpedantic -Wdeprecated -g -O2 -fPIC")
+	endif()
 endif()
 
 if(DEFINED USE_WASM)  # wasm build needs OPENCV_DIR defined
@@ -58,16 +61,26 @@ if(MSVC)
 	set(CPPFILESYSTEM "")
 endif()
 
+# On Windows/MSVC, find GLEW for OpenGL support (used by GUI targets)
+if(MSVC AND NOT DEFINED USE_WASM)
+	option(DISABLE_GUI "Disable GUI targets (cimbar_send, cimbar_recv, cimbar_recv2)" OFF)
+	if(NOT DISABLE_GUI)
+		find_package(GLEW REQUIRED)
+		find_package(glfw3 CONFIG REQUIRED)
+		set(OPENGL_LIBS GLEW::GLEW glfw opengl32)
+	endif()
+else()
+	set(OPENGL_LIBS GL glfw)
+endif()
+
 set (PROJECTS
 	src/lib/bit_file
 	src/lib/chromatic_adaptation
 	src/lib/cimb_translator
-	src/lib/cimbar_js
 	src/lib/compression
 	src/lib/encoder
 	src/lib/extractor
 	src/lib/fountain
-	src/lib/gui
 	src/lib/image_hash
 	src/lib/serialize
 	src/lib/util
@@ -81,17 +94,32 @@ set (PROJECTS
 	src/third_party_lib/zstd
 )
 
+# GUI-related libraries (need GLFW + OpenGL)
+if(NOT DISABLE_GUI)
+set(PROJECTS
+	${PROJECTS}
+	src/lib/gui
+	src/lib/cimbar_js
+)
+endif()
+
 if(NOT DEFINED USE_WASM)
 set(PROJECTS
 	${PROJECTS}
 
 	src/exe/cimbar
 	src/exe/cimbar_extract
+	src/exe/build_image_assets
+)
+if(NOT DISABLE_GUI)
+set(PROJECTS
+	${PROJECTS}
+
 	src/exe/cimbar_recv
 	src/exe/cimbar_recv2
 	src/exe/cimbar_send
-	src/exe/build_image_assets
 )
+endif()
 endif()
 
 include_directories(

@@ -15,14 +15,14 @@ using namespace cimbar;
 using namespace std;
 
 namespace {
-	using random_bytes_engine = std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned char>;
+	using random_bytes_engine = std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned short>;
 
 	string big_random(size_t size)
 	{
 		random_bytes_engine rbe;
 		std::string data;
 		data.resize(size);
-		std::generate(begin(data), end(data), std::ref(rbe));
+		std::generate(begin(data), end(data), [&rbe]() { return static_cast<char>(rbe()); });
 		return data;
 	}
 }

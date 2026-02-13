@@ -88,7 +88,7 @@ TEST_CASE( "zstd_decompressorTest/testDecompress.ToFile", "[unit]" )
 		expectedOutput << "0123456789";
 
 	{
-		zstd_decompressor<std::ofstream> dec(tempdir.path() / "decompress.txt");
+		zstd_decompressor<std::ofstream> dec((tempdir.path() / "decompress.txt").string());
 		assertEquals( 30, dec.decompress(ss) );
 	}
 

@@ -1,7 +1,11 @@
 /* This code is subject to the terms of the Mozilla Public License, v.2.0. http://mozilla.org/MPL/2.0/. */
 #pragma once
 
+#if defined(_WIN32)
+#include <GL/glew.h>
+#else
 #include <GLES3/gl3.h>
+#endif
 #include <opencv2/opencv.hpp>
 
 namespace cimbar {
@@ -21,7 +25,11 @@ namespace mat_to_gl {
 		switch (mat.channels())
 		{
 			case 1:
+#if defined(_WIN32)
+				format = GL_RED;
+#else
 				format = GL_LUMINANCE;
+#endif
 				break;
 			case 4:
 				format = GL_RGBA;

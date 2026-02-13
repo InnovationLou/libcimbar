@@ -16,11 +16,12 @@
 #include <vector>
 
 template <typename OUTSTREAM>
-std::function<std::string(const std::string&, const std::vector<uint8_t>&)> write_on_store(std::string data_dir, bool log_writes=false)
+std::function<std::string(const std::string&, const std::vector<uint8_t>&)> write_on_store(const std::filesystem::path& data_dir, bool log_writes=false)
 {
-	return [data_dir, log_writes](const std::string& filename, const std::vector<uint8_t>& data)
+	std::string data_dir_str = data_dir.string();
+	return [data_dir_str, log_writes](const std::string& filename, const std::vector<uint8_t>& data)
 	{
-		std::string file_path = fmt::format("{}/{}", data_dir, filename);
+		std::string file_path = fmt::format("{}/{}", data_dir_str, filename);
 		OUTSTREAM f(file_path, std::ios::binary);
 		f.write((char*)data.data(), data.size());
 		if (log_writes)
@@ -30,9 +31,10 @@ std::function<std::string(const std::string&, const std::vector<uint8_t>&)> writ
 }
 
 template <typename OUTSTREAM>
-std::function<std::string(const std::string&, const std::vector<uint8_t>&)> decompress_on_store(std::string data_dir, bool log_writes=false)
+std::function<std::string(const std::string&, const std::vector<uint8_t>&)> decompress_on_store(const std::filesystem::path& data_dir, bool log_writes=false)
 {
-	return [data_dir, log_writes](const std::string& fallback_name, const std::vector<uint8_t>& data)
+	std::string data_dir_str = data_dir.string();
+	return [data_dir_str, log_writes](const std::string& fallback_name, const std::vector<uint8_t>& data)
 	{
 		std::string filename = cimbar::zstd_header_check::get_filename(data.data(), data.size());
 		if (!filename.empty())
@@ -40,7 +42,7 @@ std::function<std::string(const std::string&, const std::vector<uint8_t>&)> deco
 		if (filename.empty())
 			filename = fallback_name;
 
-		std::string file_path = fmt::format("{}/{}", data_dir, filename);
+		std::string file_path = fmt::format("{}/{}", data_dir_str, filename);
 		cimbar::zstd_decompressor<OUTSTREAM> f(file_path, std::ios::binary);
 		f.write((char*)data.data(), data.size());
 		if (log_writes)

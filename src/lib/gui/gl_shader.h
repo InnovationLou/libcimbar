@@ -1,8 +1,12 @@
 /* This code is subject to the terms of the Mozilla Public License, v.2.0. http://mozilla.org/MPL/2.0/. */
 #pragma once
 
+#if defined(_WIN32)
+#include <GL/glew.h>
+#else
 #include <GLES3/gl3.h>
 #include <GLES2/gl2ext.h>
+#endif
 #include <iostream>
 
 namespace cimbar {

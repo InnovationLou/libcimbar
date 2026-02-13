@@ -21,6 +21,11 @@ public:
 		_fp = fopen(filename.c_str(), write? "wb" : "rb");
 	}
 
+	File(const std::filesystem::path& filepath, bool write=false)
+		: File(filepath.string(), write)
+	{
+	}
+
 	std::string read_all()
 	{
 		std::string res;

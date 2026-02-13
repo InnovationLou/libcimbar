@@ -4,6 +4,9 @@
 #include "gl_2d_display.h"
 #include "mat_to_gl.h"
 
+#if defined(_WIN32)
+#include <GL/glew.h>
+#endif
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <string>
@@ -24,6 +27,13 @@ public:
 			return;
 		}
 
+#if defined(_WIN32)
+		// Request OpenGL 3.3 Core profile on Windows (desktop GL)
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+
 		_w = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 		if (!_w)
 		{
@@ -32,6 +42,16 @@ public:
 		}
 		glfwMakeContextCurrent(_w);
 		glfwSwapInterval(1);
+
+#if defined(_WIN32)
+		// Initialize GLEW after GL context is created
+		glewExperimental = GL_TRUE;
+		if (glewInit() != GLEW_OK)
+		{
+			_good = false;
+			return;
+		}
+#endif
 
 		_display = std::make_shared<cimbar::gl_2d_display>(std::max(width, height));
 		glGenTextures(1, &_texid);

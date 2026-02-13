@@ -22,6 +22,17 @@ public:
 		_codec = wirehair_encoder_create(nullptr, data, length, packet_size);
 	}
 
+	// Disable copy (raw pointer to codec resource)
+	FountainEncoder(const FountainEncoder&) = delete;
+
+	// Move constructor: transfer ownership of codec
+	FountainEncoder(FountainEncoder&& other) noexcept
+	    : _codec(other._codec)
+	    , _packetSize(other._packetSize)
+	{
+		other._codec = nullptr;
+	}
+
 	~FountainEncoder()
 	{
 		wirehair_free(_codec);

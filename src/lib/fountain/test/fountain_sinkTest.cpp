@@ -6,6 +6,7 @@
 #include "fountain_decoder_sink.h"
 
 #include "serialize/format.h"
+#include "serialize/str.h"
 #include "serialize/str_join.h"
 #include "util/File.h"
 #include "util/MakeTempDirectory.h"
@@ -74,7 +75,7 @@ TEST_CASE( "FountainSinkTest/testDefault", "[unit]" )
 	assertEquals( 2, sink.num_done() );
 
 	assertEquals( "", turbo::str::join(sink.get_progress()) );
-	assertEquals( "1.1600 0.1200", turbo::str::join(sink.get_done()) );
+	assertEquals( "0.1200 1.1600", turbo::str::join(turbo::str::sort(sink.get_done())) );
 
 	string contents = File(tempdir.path() / "0.1200").read_all();
 	assertEquals( 1200, contents.size() );
